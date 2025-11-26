@@ -1,4 +1,4 @@
-package smwu.network.dto;
+package smwu.network.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
