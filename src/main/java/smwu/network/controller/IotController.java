@@ -4,8 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import smwu.network.dto.*;
+import smwu.network.dto.request.EventRequest;
+import smwu.network.dto.request.HeartRateRequest;
+import smwu.network.dto.request.LocationRequest;
+import smwu.network.dto.request.TemperatureRequest;
+import smwu.network.dto.response.DashboardResponse;
 import smwu.network.service.DashboardService;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -44,8 +50,9 @@ public class IotController {
     }
 
     @GetMapping("/dashboard")
-    public DashboardResponse getDashboard() {
-        return dashboardService.getDashboardSnapshot();
+    public ResponseEntity<List<DashboardResponse>> getDashboard() {
+        List<DashboardResponse> snapshot = dashboardService.getDashboardSnapshot();
+        return ResponseEntity.ok(snapshot);
     }
 }
 
