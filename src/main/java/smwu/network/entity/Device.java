@@ -1,17 +1,14 @@
 package smwu.network.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor @Builder
+@Table(name = "device", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "deviceId")
+})
 public class Device {
 
     @Id
