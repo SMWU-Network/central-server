@@ -52,38 +52,35 @@
             overflow-y: auto;
             padding: 12px;
             background: #fafafa;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .msg-row {
+            display: flex;
+            margin-bottom: 10px;
         }
 
         .bubble {
-            max-width: 75%;
-            margin-bottom: 10px;
+            max-width: 70%;
             padding: 10px 14px;
             border-radius: 15px;
             font-size: 14px;
             line-height: 1.3;
+            word-break: break-word;
         }
 
-        /* sender별 말풍선 색 */
-        .children {
-            background: #e3f2fd;
-            align-self: flex-start;
-        }
+        /* 왼쪽 */
+        .left { justify-content: flex-start; }
 
-        .center {
-            background: #ffe0b2;
-            align-self: flex-start;
-        }
+        /* 오른쪽 */
+        .right { justify-content: flex-end; }
 
-        .system {
-            background: #d1c4e9;
-            align-self: flex-start;
-            font-weight: bold;
-        }
-
-        .me {
-            background: #c8e6c9;
-            align-self: flex-end;
-        }
+        /* sender별 색상 */
+        .children { background: #e3f2fd; }
+        .center   { background: #ffe0b2; }
+        .system   { background: #d1c4e9; }
+        .me       { background: #c8e6c9; }
 
         .input-area {
             display: flex;
@@ -114,11 +111,6 @@
         button:hover {
             background: #357ABD;
         }
-
-        .msg-row {
-            display: flex;
-            flex-direction: column;
-        }
     </style>
 </head>
 
@@ -148,17 +140,17 @@
     let stomp = null;
     let subscription = null;
 
-    function appendMessage(sender, message) {
+    function appendMessage(sender, message, isMine = false) {
         const box = document.getElementById("chat-box");
-        const bubble = document.createElement("div");
 
+        const row = document.createElement("div");
+        row.className = "msg-row " + (isMine ? "right" : "left");
+
+        const bubble = document.createElement("div");
         bubble.className = "bubble " + sender;
         bubble.innerText = message;
 
-        const row = document.createElement("div");
-        row.className = "msg-row";
         row.appendChild(bubble);
-
         box.appendChild(row);
         box.scrollTop = box.scrollHeight;
     }
@@ -178,7 +170,13 @@
 
         subscription = stomp.subscribe("/topic/chat/" + deviceId, (msg) => {
             const body = JSON.parse(msg.body);
-            appendMessage(body.sender, body.message);
+
+            const sender = (body.sender ?? "system").toLowerCase();
+            const currentUser = document.getElementById("sender").value;
+
+            appendMessage(sender,
+                body.message,
+                sender === currentUser);  // 내가 보낸 건 오른쪽 정렬
         });
     }
 
