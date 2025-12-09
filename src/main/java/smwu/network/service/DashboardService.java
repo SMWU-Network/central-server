@@ -109,5 +109,4 @@ public class DashboardService {
 
         dashboardStore.updateTemperature(device.getDeviceId(), response);
     }
-
 }
