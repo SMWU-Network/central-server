@@ -9,6 +9,7 @@ import smwu.network.dto.request.TemperatureRequest;
 import smwu.network.dto.response.*;
 import smwu.network.entity.*;
 import smwu.network.repository.*;
+import smwu.network.websocket.WebSocketPublisher;
 
 import java.time.LocalDateTime;
 
@@ -22,6 +23,7 @@ public class DashboardService {
     private final LocationRepository locationRepository;
     private final TemperatureRepository temperatureRepository;
     private final DashboardStore dashboardStore;
+    private final WebSocketPublisher webSocketPublisher;
 
     private Device getOrCreateDevice(String deviceId) {
         return deviceRepository.findByDeviceId(deviceId)
@@ -51,6 +53,8 @@ public class DashboardService {
                 .build();
 
         dashboardStore.updateEvent(device.getDeviceId(), response);
+
+        webSocketPublisher.publish(device.getDeviceId(), response);
     }
 
     public void saveHeartRate(HeartRateRequest dto) {
@@ -70,6 +74,8 @@ public class DashboardService {
                 .build();
 
         dashboardStore.updateHeartRate(device.getDeviceId(), response);
+
+        webSocketPublisher.publish(device.getDeviceId(), response);
     }
 
     public void saveLocation(LocationRequest dto) {
@@ -89,6 +95,8 @@ public class DashboardService {
                 .build();
 
         dashboardStore.updateLocation(device.getDeviceId(), response);
+
+        webSocketPublisher.publish(device.getDeviceId(), response);
     }
 
     public void saveTemperature(TemperatureRequest dto) {
@@ -108,6 +116,8 @@ public class DashboardService {
                 .build();
 
         dashboardStore.updateTemperature(device.getDeviceId(), response);
+
+        webSocketPublisher.publish(device.getDeviceId(), response);
     }
 
 }
