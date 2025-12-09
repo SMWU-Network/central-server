@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>IoT Chat</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            padding-top: 40px;
+        }
+
+        .chat-container {
+            width: 380px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #4a90e2;
+            color: white;
+            padding: 14px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .room-select {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+
+        .room-select input, .room-select select {
+            padding: 6px 10px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        #chat-box {
+            height: 350px;
+            overflow-y: auto;
+            padding: 12px;
+            background: #fafafa;
+        }
+
+        .bubble {
+            max-width: 75%;
+            margin-bottom: 10px;
+            padding: 10px 14px;
+            border-radius: 15px;
+            font-size: 14px;
+            line-height: 1.3;
+        }
+
+        /* sender별 말풍선 색 */
+        .children {
+            background: #e3f2fd;
+            align-self: flex-start;
+        }
+
+        .center {
+            background: #ffe0b2;
+            align-self: flex-start;
+        }
+
+        .system {
+            background: #d1c4e9;
+            align-self: flex-start;
+            font-weight: bold;
+        }
+
+        .me {
+            background: #c8e6c9;
+            align-self: flex-end;
+        }
+
+        .input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+
+        #msg {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 14px;
+            margin-left: 8px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #357ABD;
+        }
+
+        .msg-row {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+
+<body>
+<div class="chat-container">
+
+    <div class="header">SmartCare 상담 채팅</div>
+
+    <div class="room-select">
+        <input id="device" value="senior-5000" style="width: 140px;">
+        <select id="sender">
+            <option value="children">자녀</option>
+            <option value="center">상담원</option>
+        </select>
+        <button onclick="changeDevice()">변경</button>
+    </div>
+
+    <div id="chat-box"></div>
+
+    <div class="input-area">
+        <input id="msg" placeholder="메시지를 입력하세요…">
+        <button onclick="sendMsg()">Send</button>
+    </div>
+</div>
+
+<script>
+    let stomp = null;
+    let subscription = null;
+
+    function appendMessage(sender, message) {
+        const box = document.getElementById("chat-box");
+        const bubble = document.createElement("div");
+
+        bubble.className = "bubble " + sender;
+        bubble.innerText = message;
+
+        const row = document.createElement("div");
+        row.className = "msg-row";
+        row.appendChild(bubble);
+
+        box.appendChild(row);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function connect() {
+        const socket = new SockJS("http://localhost:8080/ws");
+        stomp = Stomp.over(socket);
+
+        stomp.connect({}, () => {
+            subscribeToRoom(document.getElementById("device").value);
+        });
+    }
+
+    function subscribeToRoom(deviceId) {
+        if (subscription) subscription.unsubscribe();
+        document.getElementById("chat-box").innerHTML = "";
+
+        subscription = stomp.subscribe("/topic/chat/" + deviceId, (msg) => {
+            const body = JSON.parse(msg.body);
+            appendMessage(body.sender, body.message);
+        });
+    }
+
+    function changeDevice() {
+        subscribeToRoom(document.getElementById("device").value);
+    }
+
+    function sendMsg() {
+        const deviceId = document.getElementById("device").value;
+        const sender = document.getElementById("sender").value;
+        const msg = document.getElementById("msg").value;
+
+        stomp.send("/app/chat/" + deviceId, {}, JSON.stringify({
+            sender: sender,
+            message: msg
+        }));
+
+        document.getElementById("msg").value = "";
+    }
+
+    connect();
+</script>
+
+</body>
+</html>

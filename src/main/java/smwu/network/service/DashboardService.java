@@ -23,7 +23,8 @@ public class DashboardService {
     private final LocationRepository locationRepository;
     private final TemperatureRepository temperatureRepository;
     private final DashboardStore dashboardStore;
-    private final WebSocketPublisher webSocketPublisher;
+    private final AlertPublisher alertPublisher;
+    private final AlertEngine alertEngine;
 
     private Device getOrCreateDevice(String deviceId) {
         return deviceRepository.findByDeviceId(deviceId)
@@ -54,7 +55,7 @@ public class DashboardService {
 
         dashboardStore.updateEvent(device.getDeviceId(), response);
 
-        webSocketPublisher.publish(device.getDeviceId(), response);
+        alertPublisher.publishToAllRoles(device.getDeviceId(), "event", response);
     }
 
     public void saveHeartRate(HeartRateRequest dto) {
@@ -75,7 +76,7 @@ public class DashboardService {
 
         dashboardStore.updateHeartRate(device.getDeviceId(), response);
 
-        webSocketPublisher.publish(device.getDeviceId(), response);
+        alertPublisher.publishToAllRoles(device.getDeviceId(), "heart-rate", response);
     }
 
     public void saveLocation(LocationRequest dto) {
@@ -96,7 +97,7 @@ public class DashboardService {
 
         dashboardStore.updateLocation(device.getDeviceId(), response);
 
-        webSocketPublisher.publish(device.getDeviceId(), response);
+        alertPublisher.publishToAllRoles(device.getDeviceId(), "location", response);
     }
 
     public void saveTemperature(TemperatureRequest dto) {
@@ -117,7 +118,6 @@ public class DashboardService {
 
         dashboardStore.updateTemperature(device.getDeviceId(), response);
 
-        webSocketPublisher.publish(device.getDeviceId(), response);
+        alertPublisher.publishToAllRoles(device.getDeviceId(), "temperature", response);
     }
-
 }
